@@ -71,13 +71,29 @@ class PerceptronTest(unittest.TestCase):
         self.assertEqual(p.activate([1,1,1]), 1)
 
 
-class PerceptronLayerTest(unittest.TestCase):
+class PerceptronNetworkTest(unittest.TestCase):
     def test_n_xor(self):
-        self.assertEqual(1,1)
+        net = PerceptronNetwork(2, # Layer depth (no input layer needed).
+        [2, 1], # Nummer of perceptrons
+        [[[1, 1], [1, 1]], [[2, -1]]], # Incoming Weights per perceptron in the n'th layer.
+        [[-1, -2], [-2]]) # Bias for every perceptron in n'th layer
 
+        self.assertEqual(net.feed_forward([1,1]), [0])
+        self.assertEqual(net.feed_forward([1,0]),[1])
+        self.assertEqual(net.feed_forward([0,1]),[1])
+        self.assertEqual(net.feed_forward([0,0]),[0])
+
+    
+    def test_n_halfadder(self):
+        net = PerceptronNetwork(2, # Layer depth (no input layer needed).
+        [2, 2], # Nummer of perceptrons
+        [[[1, 1], [1, 1]], [[2, -1], [0.5, 0.5]]], # Incoming Weights per perceptron in the n'th layer.
+        [[-1, -2, -2], [-2, -1]]) # Bias for every perceptron in n'th layer
+
+        self.assertEqual(net.feed_forward([0,0]), [0, 0])
+        self.assertEqual(net.feed_forward([0,1]),[1, 0])
+        self.assertEqual(net.feed_forward([1,0]),[1, 0])
+        self.assertEqual(net.feed_forward([1,1]),[0, 1])
 
 if __name__ == '__main__':
-    # unittest.main()
-    net = PerceptronNetwork(2,[3,2], [[0.31,0.31,0.31], [0.5, 0.5]],[-0.9,-1])
-
-    print(net)
+    unittest.main()
