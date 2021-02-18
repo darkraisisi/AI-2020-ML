@@ -1,12 +1,23 @@
 from typing import List, Sequence
 import random
+import math
 
 class Perceptron():
 
-    def __init__(self, weights, bias):
+    def __init__(self, weights, bias, activation=None):
         self.weights = weights
         self.bias = bias
+        self.learningRate = 0.1
+        self.n = 0
+        self.totalError = 0
+
+        if activation is None:
+            activation = self.step
+        self.activation = activation
     
+    def step(self, total):
+        return 1 if total >= 0 else 0
+
 
     def activate(self, _input:list):
         """
@@ -24,9 +35,27 @@ class Perceptron():
         total = 0
         for i in range(0,len(self.weights)):
             total += self.weights[i] * _input[i]
+        total += self.bias
+        return self.activation(total)
 
-        return 1 if total + self.bias >= 0 else 0 
 
+    def update(self, _input:List[int], target:int):
+        output = self.activate(_input)
+        error = target - output
+        b_delta = self.learningRate * error
+
+        self.totalError += error
+        self.n += 1
+
+        for i in range(len(_input)):
+            self.weights[i] += b_delta * _input[i]
+
+        self.bias += b_delta
+        return -1 if error == 0 else 0 
+
+
+    def error(self):
+        return (self.totalError ** 2) / self.n
 
 
     def __str__(self):
@@ -34,10 +63,10 @@ class Perceptron():
 
 
 class PerceptronLayer():
-    def __init__(self, n, weights, bias):
+    def __init__(self, n, weights, bias, TYPE=Perceptron):
         self.perceptrons = []
         for i in range(0,n):
-            self.perceptrons.append(Perceptron(weights[i], bias[i]))
+            self.perceptrons.append(TYPE(weights[i], bias[i]))
     
     def activate(self, LayerInput:List[int]):
         """
@@ -67,15 +96,26 @@ class PerceptronLayer():
 
 
 class PerceptronNetwork():
-    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False):
+    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False, TYPE=Perceptron):
         """
         Generates a perceptron network.
 
+        Parameters:
+        nLayers (int): The amount of layers you want without an explicit input layer.
+
+        PPL (List[int]): Number of 'Perceptrons Per Layer'
+
+        WPL (List[List[List[int]]]): The incoming weights, per layer per perceptron.
+
+        BPL (List[List[int]]): Bias per perceptron.
+
+        auto (Boolean) = False: Will generate a network if True only needing the number of layers and perceptrons per layer (PPL).
+
         By the given parameters creates several linked layer of perceptrons.
         """
-        self.layers: PerceptronLayer = []
+        self.layers: TYPE = []
 
-        if auto:# WORK IN PROGRESS
+        if auto:
             """ 
             If a user want to use auto mode, they only need to supply nLayers and PPL (PerceptronsPerLayer).
             The weights will all be randomly assignd and bias will all be 0.
@@ -85,7 +125,7 @@ class PerceptronNetwork():
                 BPL.append([]) # append a new layer
                 for p in range(0, PPL[n]):
                     WPL[n].append(random.uniform(-1, 2))
-
+                    BPL[n].append(0)
 
         
 
@@ -93,7 +133,7 @@ class PerceptronNetwork():
             raise ValueError("Length of argument are not equal",f"Layer length:{nLayers}",f"Percept. per layer length:{len(PPL)}",f"Weights per layer length:{len(WPL)}",f"Bias'es per layer length:{len(BPL)}")
 
         for n in range(0, nLayers):
-            self.layers.append(PerceptronLayer(PPL[n], WPL[n], BPL[n]))
+            self.layers.append(PerceptronLayer(PPL[n], WPL[n], BPL[n], TYPE))
 
     
     def feed_forward(self,networkInput:List[int]):
@@ -117,5 +157,4 @@ class PerceptronNetwork():
         for i, l in enumerate(self.layers,1):
             _str += f"\nLayer {i}: {l}"
         return _str
-
 
