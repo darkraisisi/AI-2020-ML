@@ -7,7 +7,7 @@ class Perceptron():
     def __init__(self, weights, bias, activation=None):
         self.weights = weights
         self.bias = bias
-        self.learningRate = 0.1
+        self.learningRate = 1
         self.n = 0
         self.totalError = 0
 
@@ -15,11 +15,12 @@ class Perceptron():
             activation = self.step
         self.activation = activation
     
+
     def step(self, total):
         return 1 if total >= 0 else 0
 
 
-    def activate(self, _input:list):
+    def activate(self, _input:List[int]):
         """
         Activate this perceptron and evaluate the input.
 
@@ -54,12 +55,12 @@ class Perceptron():
         return -1 if error == 0 else 0 
 
 
-    def error(self):
+    def mse(self):
         return (self.totalError ** 2) / self.n
 
 
     def __str__(self):
-        return f"Weights {self.weights}, Bias {self.bias}"
+        return f"Weights {self.weights}, Bias {self.bias}, Learningrate {self.learningRate}"
 
 
 class PerceptronLayer():
@@ -88,6 +89,12 @@ class PerceptronLayer():
             output.append(perceptron.activate(_input))
         return output
     
+    def getWeight(self):
+        weights = []
+        for i in self.perceptrons:
+            weights.append(i.weights)
+        return weights
+    
     def __str__(self):
         _str = f"{len(self.perceptrons)} perceptrons"
         for p in self.perceptrons:
@@ -96,7 +103,7 @@ class PerceptronLayer():
 
 
 class PerceptronNetwork():
-    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False, TYPE=Perceptron):
+    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False, TYPE=Perceptron, LAYERTYPE=PerceptronLayer):
         """
         Generates a perceptron network.
 
@@ -131,9 +138,9 @@ class PerceptronNetwork():
 
         if nLayers != len(PPL) or nLayers != len(WPL) or nLayers != len(BPL):
             raise ValueError("Length of argument are not equal",f"Layer length:{nLayers}",f"Percept. per layer length:{len(PPL)}",f"Weights per layer length:{len(WPL)}",f"Bias'es per layer length:{len(BPL)}")
-
+        
         for n in range(0, nLayers):
-            self.layers.append(PerceptronLayer(PPL[n], WPL[n], BPL[n], TYPE))
+            self.layers.append(LAYERTYPE(PPL[n], WPL[n], BPL[n], TYPE))
 
     
     def feed_forward(self,networkInput:List[int]):

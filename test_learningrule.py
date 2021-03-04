@@ -29,7 +29,7 @@ class PerceptronLearningRuleTest(unittest.TestCase):
             succes += p.update([0,1], 1)
             succes += p.update([1,1], 1)
 
-        print(f'Error: {p.error()}, Iterations: {i}\n{p}')
+        print(f'Error: {p.mse()}, Iterations: {i}\n{p}')
 
         if i == self.maxTries:
             print(f'--- Perceptron fail to converge ---')
@@ -57,7 +57,7 @@ class PerceptronLearningRuleTest(unittest.TestCase):
             succes += p.update([0,1], 0)
             succes += p.update([1,1], 1)
 
-        print(f'Error: {p.error()}, Iterations: {i}\n{p}')
+        print(f'Error: {p.mse()}, Iterations: {i}\n{p}')
 
         if i == self.maxTries:
             print(f'--- Perceptron fail to converge ---')
@@ -85,7 +85,7 @@ class PerceptronLearningRuleTest(unittest.TestCase):
             succes += p.update([0,1], 1)
             succes += p.update([1,1], 0)
         
-        print(f'Error: {p.error()}, Iterations: {i}\n{p}')
+        print(f'Error: {p.mse()}, Iterations: {i}\n{p}')
 
         if i == self.maxTries:
             print(f'--- Perceptron fail to converge ---')
@@ -107,7 +107,7 @@ class PerceptronLearningRuleTest(unittest.TestCase):
             for i, flwr in enumerate(data.data[:100],0):
                 succes += p.update(flwr, data.target[i])
         
-        print(f'Error: {p.error()}, Iterations: {i}\n{p}')
+        print(f'Error: {p.mse()}, Iterations: {i}\n{p}')
 
         if i == self.maxTries:
             print(f'--- Perceptron fail to converge ---')
@@ -129,7 +129,7 @@ class PerceptronLearningRuleTest(unittest.TestCase):
             for i, flwr in enumerate(data.data,0):
                 succes += p.update(flwr, data.target[i])
         
-        print(f'Error: {p.error()}, Iterations: {i}\n{p}')
+        print(f'Error: {p.mse()}, Iterations: {i}\n{p}')
 
         if i == self.maxTries:
             print(f'--- Perceptron fail to converge ---')
