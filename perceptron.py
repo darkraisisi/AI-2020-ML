@@ -4,10 +4,10 @@ import math
 
 class Perceptron():
 
-    def __init__(self, weights, bias, activation=None):
+    def __init__(self, weights, bias, activation=None, learningRate=1):
         self.weights = weights
         self.bias = bias
-        self.learningRate = 1
+        self.learningRate = learningRate
         self.n = 0
         self.totalError = 0
 
@@ -45,7 +45,7 @@ class Perceptron():
         error = target - output
         b_delta = self.learningRate * error
 
-        self.totalError += error
+        self.totalError += (error ** 2)
         self.n += 1
 
         for i in range(len(_input)):
@@ -56,7 +56,7 @@ class Perceptron():
 
 
     def mse(self):
-        return (self.totalError ** 2) / self.n
+        return self.totalError / self.n
 
 
     def __str__(self):
@@ -64,10 +64,10 @@ class Perceptron():
 
 
 class PerceptronLayer():
-    def __init__(self, n, weights, bias, TYPE=Perceptron):
+    def __init__(self, n, weights, bias, TYPE=Perceptron, learningRate=1):
         self.perceptrons = []
         for i in range(0,n):
-            self.perceptrons.append(TYPE(weights[i], bias[i]))
+            self.perceptrons.append(TYPE(weights[i], bias[i],learningRate=learningRate))
     
     def activate(self, LayerInput:List[int]):
         """
@@ -103,7 +103,7 @@ class PerceptronLayer():
 
 
 class PerceptronNetwork():
-    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False, TYPE=Perceptron, LAYERTYPE=PerceptronLayer):
+    def __init__(self, nLayers, PPL:List[int], WPL:List[List[List[int]]], BPL:List[List[int]], auto=False, TYPE=Perceptron, LAYERTYPE=PerceptronLayer, learningRate=1):
         """
         Generates a perceptron network.
 
@@ -140,7 +140,7 @@ class PerceptronNetwork():
             raise ValueError("Length of argument are not equal",f"Layer length:{nLayers}",f"Percept. per layer length:{len(PPL)}",f"Weights per layer length:{len(WPL)}",f"Bias'es per layer length:{len(BPL)}")
         
         for n in range(0, nLayers):
-            self.layers.append(LAYERTYPE(PPL[n], WPL[n], BPL[n], TYPE))
+            self.layers.append(LAYERTYPE(PPL[n], WPL[n], BPL[n], TYPE, learningRate))
 
     
     def feed_forward(self,networkInput:List[int]):
