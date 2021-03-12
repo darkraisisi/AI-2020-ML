@@ -3,13 +3,17 @@ from typing import List, Sequence
 import math
 import random
 import unittest
+import copy
 
 from sklearn.datasets import load_iris
 from sklearn.datasets import load_digits
+from sklearn.preprocessing import StandardScaler
+
+import numpy as np
 
 class BackpropagationTest(unittest.TestCase):
 
-    def _test_n_and_train(self):
+    def test_n_and_train(self):
         """
         n = Neuron([1],10)
         ret = n.activate([100])
@@ -33,15 +37,11 @@ class BackpropagationTest(unittest.TestCase):
         self.assertGreater(n.feed_forward([1,1]), [0.9])
     
     
-    def _test_n_xor_train(self):
+    def test_n_xor_train(self):
         n = NeuronNetwork(2,
         [2,1],
         [[[0.2,-0.4],[0.7,0.1]], [[0.6,0.9]]],
         [[0.0, 0.0], [0.0]],learningRate=1)
-        # n = NeuronNetwork(2,
-        # [2,1],
-        # [[[0.0,0.0],[0.0,0.0]], [[0.0,0.0]]],
-        # [[0.0, 0.0], [0.0]],learningRate=0.8)
 
 
         inputs = [[1,1], [0,1], [1,0], [0,0]]
@@ -54,7 +54,7 @@ class BackpropagationTest(unittest.TestCase):
         self.assertGreater(n.feed_forward([0,1]), [0.9])
         self.assertLess(n.feed_forward([1,1]), [0.01])
 
-    def _test_n_halfadder_train(self):
+    def test_n_halfadder_train(self):
         n = NeuronNetwork(2,
         [3,2],
         [[[0.0, 0.1],[0.2, 0.3], [0.4, 0.5]], [[0.6,0.7,0.8],[0.9, 1.0, 1.1]]],
@@ -63,7 +63,7 @@ class BackpropagationTest(unittest.TestCase):
         inputs = [[1,1], [1,0], [0,1], [0,0]]
         targets = [[0,1], [1,0], [1,0], [0,0]]
 
-        n.train(inputs,targets,1,180)
+        n.train(inputs,targets,10,180)
 
         errorMargin = 0.001
         print(n)
@@ -74,19 +74,17 @@ class BackpropagationTest(unittest.TestCase):
         self.almostEqualList(n.feed_forward([1,1]), [0,1], errorMargin)
     
 
-    def _test_n_iris(self):
+    def test_n_iris(self):
         """
-        n = NeuronNetwork(3,
-        [10,8,3],
-        [[[0.6,0.7,0.8,0.9]]*10, [[0.3]*10]*8 ,[[0.4]*8, [0.5]*8, [0.6]*8]],
-        [[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], [0.0, 0.0, 0.0]], learningRate=0.1)
-        """
-
         n = NeuronNetwork(4,
         [10,8,6,3],
         [[[0.6,0.7,0.8,0.9]]*10, [[0.3]*10]*8, [[0.3]*8]*6 ,[[0.4]*6, [0.5]*6, [0.6]*6]],
-        [[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], [-0.1, -0.2, -0.3, -0.4, -0.5, -0.6], [0.0, 0.0, 0.0]], learningRate=0.1)
-
+        [[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], [-0.1, -0.2, -0.3, -0.4, -0.5, -0.6], [0.0, 0.0, 0.0]], learningRate=1)
+        """
+        n = NeuronNetwork(1,
+        [3],
+        [[[0.2,0.2,0.2,0.2]]*3],
+        [[-1.0,-1.0,-1.0]],learningRate=0.3)
         print(n)
         
         data = load_iris()
@@ -97,53 +95,72 @@ class BackpropagationTest(unittest.TestCase):
             empty = [0,0,0]
             empty[x] = 1
             target.append(empty)
-
-        n.train(inputs, target, 200, 10*60)
+        
+        n.train(inputs, target, 2000, 10*60)
         print(n)
 
+        total = 0
         error = 0
         for i, x in enumerate(target, 0):
             out = n.feed_forward(inputs[i])
             if i < 50:
                 error += self.mse(out, [1,0,0])
+                if np.argmax(out) == 0:
+                    total +=1
                 print(i, out, 1)
             elif i >= 50 and i < 100:
                 error += self.mse(out, [0,1,0])
+                if np.argmax(out) == 1:
+                    total +=1
                 print(i, out, 2)
             elif i >= 100 and i < 150:
                 error += self.mse(out, [0,0,1])
+                if np.argmax(out) == 2:
+                    total +=1
                 print(i, out, 3)
 
-        print(f'MSE: {error/150}, RMSE:{math.sqrt(error/150)}')    
+        print(f'MSE: {error/150}, RMSE:{math.sqrt(error/150)}')
+        print(f'Accuracy:{total/len(target)}')
         
         
     def test_n_digits(self):
 
-        n = NeuronNetwork(2,
-        [16,10],
-        [[[0.3]*64]*16, [[0.4]*16]*10],
-        [[0.5]*16, [0.0]*10], learningRate=0.1)
+        n = NeuronNetwork(1,
+        [10],
+        [[[0.1]*64]*10],
+        [[0.0]*10], learningRate=0.1)
 
         print(n)
         
         data = load_digits()
 
         inputs = data.data
+        scaler = StandardScaler()
+        scaler.fit(inputs)
+        scaler.transform(inputs)
+
         target = []
         for x in data.target:
             empty = [0]*10
             empty[x] = 1
             target.append(empty)
 
-        n.train(inputs, target, 200, 10*60)
+        n.train(copy.deepcopy(inputs), copy.deepcopy(target), 100, 10*60)
+
         print(n)
 
+        total = 0
         error = 0
         for i, x in enumerate(target, 0):
             out = n.feed_forward(inputs[i])
-            error += self.mse(out, empty)
+            # print(i,x,out, data.target[i])
+            if np.argmax(out) == np.argmax(x):
+                total += 1 
+            error += self.mse(out, x)
 
         print(f'MSE: {error/150}, RMSE:{math.sqrt(error/150)}')
+        print(f'Accuracy:{total/len(target)}')
+
     
 
     def mse(self, inputs, targets):
